@@ -6,6 +6,7 @@ from datetime import datetime
 
 import telethon as tg
 
+import toml
 
 def mention_user(user):
     if user.username:
@@ -118,3 +119,9 @@ async def msg_download_file(download_msg, status_msg, destination=bytes, file_ty
         last_percent = percent
 
     return await download_msg.download_media(file=destination, progress_callback=prog_func)
+
+
+def check_user_admin(user_id):
+    config = toml.load("config.toml")
+    return True if user_id in config["admins"]["list"] else False
+

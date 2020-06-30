@@ -31,12 +31,16 @@ class Bot:
         self.listeners = {}
 
         self.log = logging.getLogger("bot")
-        self.client = tg.TelegramClient("anon", config["telegram"]["api_id"], config["telegram"]["api_hash"])
+        # self.client = tg.TelegramClient("anon", config["telegram"]["api_id"], config["telegram"]["api_hash"])
+
+        self.client = tg.TelegramClient("bot", config["telegram"]["api_id"], config["telegram"]["api_hash"])
+
         self.http_session = aiohttp.ClientSession()
 
         self.config = config
         self.config_path = config_path
         self.prefix = config["bot"]["prefix"]
+        self.log.info(f"Prefix is '{self.prefix}'")
         self.last_saved_cfg = toml.dumps(config)
 
     def register_command(self, mod, name, func):
@@ -47,6 +51,7 @@ class Bot:
             raise module.ExistingCommandError(orig, info)
 
         self.commands[name] = info
+        print(f"Registering : {name}")
 
         for alias in getattr(func, "aliases", []):
             if alias in self.commands:
@@ -196,14 +201,14 @@ class Bot:
     def command_predicate(self, event):
         if event.raw_text.startswith(self.prefix):
             parts = event.raw_text.split()
-            parts[0] = parts[0][len(self.prefix) :]
+            parts[0] = parts[0][len(self.prefix) : parts[0].find("@")]
 
             event.segments = parts
             return True
 
         return False
 
-    async def start(self):
+    async def start(self, config):
         # Get and store current event loop, since this is the first coroutine
         self.loop = asyncio.get_event_loop()
 
@@ -213,11 +218,13 @@ class Bot:
         await self.save_config()
 
         # Start Telegram client
-        await self.client.start()
+        await self.client.start(bot_token=config["telegram"]["bot_key"])
 
         # Get info
         self.user = await self.client.get_me()
         self.uid = self.user.id
+
+        self.log.info(f"User is @{self.user.username}")
 
         # Hijack Message class to provide result function
         async def result(msg, new_text, **kwargs):
@@ -229,13 +236,11 @@ class Bot:
                 new_text = new_text.replace(api_id, "[REDACTED]")
             if api_hash in new_text:
                 new_text = new_text.replace(api_hash, "[REDACTED]")
-            if self.user.phone in new_text:
-                new_text = new_text.replace(self.user.phone, "[REDACTED]")
 
             if "link_preview" not in kwargs:
                 kwargs["link_preview"] = False
 
-            await msg.edit(text=new_text, **kwargs)
+            await self.client.send_message(msg.chat_id, new_text, **kwargs)
 
         tg.types.Message.result = result
 
@@ -246,7 +251,7 @@ class Bot:
         # Register handlers
         self.client.add_event_handler(self.on_message, tg.events.NewMessage)
         self.client.add_event_handler(self.on_message_edit, tg.events.MessageEdited)
-        self.client.add_event_handler(self.on_command, tg.events.NewMessage(outgoing=True, func=self.command_predicate))
+        self.client.add_event_handler(self.on_command, tg.events.NewMessage(outgoing=False, func=self.command_predicate))
         self.client.add_event_handler(self.on_chat_action, tg.events.ChatAction)
 
         # Save config in the background
@@ -315,7 +320,8 @@ class Bot:
 
                 args = [txt[len(self.prefix) + len(event.segments[0]) + 1 :]]
             elif cmd_spec.varargs is not None and len(cmd_spec.varargs) > 0 and not cmd_spec.kwonlyargs:
-                args = event.segments[1:]
+                args = event.segments[1:]                
+                # args = event.segments[1:event.segments.find("@")]
 
             try:
                 ret = await cmd_func(event, *args)

@@ -139,3 +139,7 @@ cython_debug/
 
 # config file
 config.toml
+
+# telethon bot sessions
+bot.session
+bot.session-journal

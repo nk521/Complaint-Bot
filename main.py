@@ -42,7 +42,7 @@ def main():
 
     log.info("Starting bot")
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(bot.start())
+    loop.run_until_complete(bot.start(config))
 
     bot.client.run_until_disconnected()
 
