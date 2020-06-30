@@ -8,6 +8,7 @@ import telethon as tg
 
 import toml
 
+
 def mention_user(user):
     if user.username:
         return f"@{user.username}"
@@ -100,7 +101,9 @@ async def run_sync(func):
     return future.result()
 
 
-async def msg_download_file(download_msg, status_msg, destination=bytes, file_type="file"):
+async def msg_download_file(
+    download_msg, status_msg, destination=bytes, file_type="file"
+):
     last_percent = -5
 
     def prog_func(current_bytes, total_bytes):
@@ -114,14 +117,17 @@ async def msg_download_file(download_msg, status_msg, destination=bytes, file_ty
         percent = int((current_bytes / total_bytes) * 100)
         if abs(percent - last_percent) >= 5:
             loop = asyncio.get_event_loop()
-            loop.create_task(status_msg.result(f"Downloading {file_type}... {percent}% complete"))
+            loop.create_task(
+                status_msg.result(f"Downloading {file_type}... {percent}% complete")
+            )
 
         last_percent = percent
 
-    return await download_msg.download_media(file=destination, progress_callback=prog_func)
+    return await download_msg.download_media(
+        file=destination, progress_callback=prog_func
+    )
 
 
 def check_user_admin(user_id):
     config = toml.load("config.toml")
     return True if user_id in config["admins"]["list"] else False
-

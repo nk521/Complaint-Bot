@@ -7,7 +7,9 @@ class ModuleLoadError(Exception):
 
 class ExistingModuleError(ModuleLoadError):
     def __init__(self, old_module, new_module):
-        super().__init__(f"Replacing existing module '{old_module.name}' ({old_module.__name__})")
+        super().__init__(
+            f"Replacing existing module '{old_module.name}' ({old_module.__name__})"
+        )
 
         self.old_module = old_module
         self.new_module = new_module
