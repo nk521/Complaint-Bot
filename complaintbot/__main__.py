@@ -5,7 +5,7 @@ import colorlog
 import toml
 import uvloop
 
-import util
+from complaintbot import util
 from complaintbot.bot import Bot
 
 # Copied from pyrobud

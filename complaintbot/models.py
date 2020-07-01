@@ -9,6 +9,7 @@ from sqlalchemy import (
     ForeignKey,
 )
 from sqlalchemy.dialects.sqlite import BLOB
+from sqlalchemy.orm import sessionmaker
 
 engine = create_engine("sqlite3:///db.sqlite3")
 Base = declarative_base()
@@ -52,3 +53,7 @@ class Message(Base):
     thread_id = Column(
         Integer, ForeignKey("thread.id", ondelete="cascade"), nullable=False
     )
+
+
+Base.metadata.create_all(engine)
+Session = sessionmaker(engine)
