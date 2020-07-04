@@ -207,7 +207,7 @@ class Bot:
             if "@" in parts[0]:
                 parts[0] = parts[0][len(self.prefix) : parts[0].find("@")]
             else:
-                parts[0] = parts[0][len(self.prefix) : ]
+                parts[0] = parts[0][len(self.prefix) :]
 
             event.segments = parts
             return True

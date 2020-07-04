@@ -1,4 +1,5 @@
 from datetime import datetime
+from contextlib import contextmanager
 from sqlalchemy import (
     create_engine,
     Column,
@@ -9,7 +10,7 @@ from sqlalchemy import (
     Boolean,
 )
 from sqlalchemy.dialects.sqlite import BLOB
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 engine = create_engine("sqlite:///db.sqlite3")
@@ -59,12 +60,16 @@ class Thread(Base):
 
     __tablename__ = "thread"
     id = Column(Integer, primary_key=True)
+    by_user_id = Column(
+        Integer, ForeignKey("user.tg_id", ondelete="cascade"), nullable=False
+    )
     for_group_id = Column(
         Integer, ForeignKey("group.tg_id", ondelete="cascade"), nullable=False
     )
     assigned_to = Column(
         Integer, ForeignKey("admin.id", ondelete="cascade"), nullable=False
     )
+    group = relationship("Group", backref="threads")
 
 
 class HideFrom(Base):
@@ -85,3 +90,17 @@ class HideFrom(Base):
 
 Base.metadata.create_all(engine)
 Session = sessionmaker(engine)
+
+
+@contextmanager
+def session_scope():
+    """Provide a transactional scope around a series of operations."""
+    session = Session()
+    try:
+        yield session
+        session.commit()
+    except:
+        session.rollback()
+        raise
+    finally:
+        session.close()

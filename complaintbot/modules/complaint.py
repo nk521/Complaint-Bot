@@ -4,26 +4,19 @@ from complaintbot import command, module, util, models
 class ComplaintModule(module.Module):
     name = "Complaint"
 
-    @command.desc("List the groups are you known to be a member of.")
-    async def cmd_groups(self, msg):
-        with models.Session() as session:
-            groups = session.query(models.Group).filter_by(user_id=msg.from_id)
-        lines = {}
-
-        for grp in groups:
-            lines[grp.tg_id] = f"**Identifier:** \n{grp.identifier}"
-
-        sections = []
-        for gid, identifier in lines.items():
-            sections.append(
-                f"**{gid}**:\n    \u2022 " + "\n    \u2022 ".join(ln) + "\n"
-            )
-
-        return "\n".join(sections)
-
     @command.desc("List all the complaints and their status so far.")
     async def cmd_list(self, msg):
-        return f""
+        with models.session_scope() as session:
+            u = session.query(models.User).filter_by(tg_id=msg.from_id)
+            if u is None:
+                u = models.User(tg_id=msg.from_id)
+                session.add(u)
+                session.commit()
+            threads = session.query(models.Thread).filter_by(by_user_id=msg.from_id)
+        lines = [f"**Thread:** \n{th.id}" for th in threads]
+        if lines:
+            return "\n".join(lines)
+        return "You have no threads yet!"
 
     @command.desc("Register a new complaint for a given group.")
     async def cmd_new(self, msg):
