@@ -1,7 +1,6 @@
 from datetime import datetime
 from sqlalchemy import (
     create_engine,
-    declarative_base,
     Column,
     Integer,
     String,
@@ -11,8 +10,9 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.sqlite import BLOB
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
-engine = create_engine("sqlite3:///db.sqlite3")
+engine = create_engine("sqlite:///db.sqlite3")
 Base = declarative_base()
 
 
@@ -34,7 +34,7 @@ class Group(Base):
 
     __tablename__ = "group"
     tg_id = Column(Integer, primary_key=True)
-    identifier = Column(String, null=False)
+    identifier = Column(String, nullable=False)
 
 
 class Admin(Base):
@@ -79,22 +79,6 @@ class HideFrom(Base):
         Integer, ForeignKey("user.tg_id", ondelete="cascade"), nullable=False
     )
     thread_ = Column(
-        Integer, ForeignKey("thread.id", ondelete="cascade"), nullable=False
-    )
-
-
-class Message(Base):
-    """
-    A log of messages sent to the bot in relation to a complaint.
-    """
-
-    __tablename__ = "message"
-    contents = Column(BLOB)
-    timestamp = Column(DateTime, default=datetime.utcnow)
-    from_user_id = Column(
-        Integer, ForeignKey("user.tg_id", ondelete="cascade"), nullable=False
-    )
-    thread_id = Column(
         Integer, ForeignKey("thread.id", ondelete="cascade"), nullable=False
     )
 

@@ -6,6 +6,7 @@ import toml
 import uvloop
 
 from complaintbot import util
+from complaintbot import models
 from complaintbot.bot import Bot
 
 # Copied from pyrobud
