@@ -143,3 +143,4 @@ config.toml
 # telethon bot sessions
 bot.session
 bot.session-journal
+db.sqlite3

@@ -1,8 +1,6 @@
 import subprocess
 
-import command
-import module
-import util
+from complaintbot import command, module, util
 
 
 class SystemModule(module.Module):
@@ -11,7 +9,11 @@ class SystemModule(module.Module):
     async def run_process(self, command, **kwargs):
         def _run_process():
             return subprocess.run(
-                command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, **kwargs
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                **kwargs,
             )
 
         return await util.run_sync(_run_process)
@@ -52,7 +54,11 @@ class SystemModule(module.Module):
             return "❌ The `neofetch` [program](https://github.com/dylanaraps/neofetch) must be installed on the host system."
 
         err = f"⚠️ Return code: {proc.returncode}" if proc.returncode != 0 else ""
-        sysinfo = "\n".join(proc.stdout.strip().split("\n")[2:]) if proc.returncode == 0 else proc.stdout.strip()
+        sysinfo = (
+            "\n".join(proc.stdout.strip().split("\n")[2:])
+            if proc.returncode == 0
+            else proc.stdout.strip()
+        )
 
         return f"```{sysinfo}```{err}"
 

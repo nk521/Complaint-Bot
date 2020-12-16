@@ -11,10 +11,7 @@ import aiohttp
 import telethon as tg
 import toml
 
-import command
-import module
-import modules
-import util
+from complaintbot import command, module, modules, util
 
 
 class Listener:
@@ -33,7 +30,9 @@ class Bot:
         self.log = logging.getLogger("bot")
         # self.client = tg.TelegramClient("anon", config["telegram"]["api_id"], config["telegram"]["api_hash"])
 
-        self.client = tg.TelegramClient("bot", config["telegram"]["api_id"], config["telegram"]["api_hash"])
+        self.client = tg.TelegramClient(
+            "bot", config["telegram"]["api_id"], config["telegram"]["api_hash"]
+        )
 
         self.http_session = aiohttp.ClientSession()
 
@@ -126,7 +125,9 @@ class Bot:
             self.unregister_listener(listener)
 
     def load_module(self, cls):
-        self.log.info(f"Loading module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'")
+        self.log.info(
+            f"Loading module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'"
+        )
 
         if cls.name in self.modules:
             old = self.modules[cls.name].__class__
@@ -139,7 +140,9 @@ class Bot:
 
     def unload_module(self, mod):
         cls = mod.__class__
-        self.log.info(f"Unloading module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'")
+        self.log.info(
+            f"Unloading module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'"
+        )
 
         self.unregister_listeners(mod)
         self.unregister_commands(mod)
@@ -204,7 +207,7 @@ class Bot:
             if "@" in parts[0]:
                 parts[0] = parts[0][len(self.prefix) : parts[0].find("@")]
             else:
-                parts[0] = parts[0][len(self.prefix) : ]
+                parts[0] = parts[0][len(self.prefix) :]
 
             event.segments = parts
             return True
@@ -254,7 +257,10 @@ class Bot:
         # Register handlers
         self.client.add_event_handler(self.on_message, tg.events.NewMessage)
         self.client.add_event_handler(self.on_message_edit, tg.events.MessageEdited)
-        self.client.add_event_handler(self.on_command, tg.events.NewMessage(outgoing=False, func=self.command_predicate))
+        self.client.add_event_handler(
+            self.on_command,
+            tg.events.NewMessage(outgoing=False, func=self.command_predicate),
+        )
         self.client.add_event_handler(self.on_chat_action, tg.events.ChatAction)
 
         # Save config in the background
@@ -322,8 +328,12 @@ class Bot:
                     txt = event.raw_text
 
                 args = [txt[len(self.prefix) + len(event.segments[0]) + 1 :]]
-            elif cmd_spec.varargs is not None and len(cmd_spec.varargs) > 0 and not cmd_spec.kwonlyargs:
-                args = event.segments[1:]                
+            elif (
+                cmd_spec.varargs is not None
+                and len(cmd_spec.varargs) > 0
+                and not cmd_spec.kwonlyargs
+            ):
+                args = event.segments[1:]
                 # args = event.segments[1:event.segments.find("@")]
 
             try:
@@ -337,16 +347,22 @@ class Bot:
                     await event.result(ret)
                 except Exception as e:
                     self.log.error(
-                        "Error updating message with data returned by command '%s'", cmd_info.name, exc_info=e
+                        "Error updating message with data returned by command '%s'",
+                        cmd_info.name,
+                        exc_info=e,
                     )
-                    ret = f"⚠️ Error updating message:\n```{util.format_exception(e)}```"
+                    ret = (
+                        f"⚠️ Error updating message:\n```{util.format_exception(e)}```"
+                    )
 
                     await event.result(ret)
 
             await self.dispatch_event("command", event, cmd_info, args)
         except Exception as e:
             try:
-                await event.result(f"⚠️ Error in command handler:\n```{util.format_exception(e)}```")
+                await event.result(
+                    f"⚠️ Error in command handler:\n```{util.format_exception(e)}```"
+                )
             except Exception:
                 raise
 

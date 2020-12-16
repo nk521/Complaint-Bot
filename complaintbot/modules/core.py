@@ -1,6 +1,4 @@
-import command
-import module
-import util
+from complaintbot import command, module, util
 
 
 class CoreModule(module.Module):
@@ -9,7 +7,7 @@ class CoreModule(module.Module):
     @command.desc("List the commands")
     async def cmd_help(self, msg):
         if not util.check_user_admin(msg.from_id):
-            return 
+            return
 
         lines = {}
 
@@ -31,7 +29,9 @@ class CoreModule(module.Module):
 
         sections = []
         for mod, ln in lines.items():
-            sections.append(f"**{mod}**:\n    \u2022 " + "\n    \u2022 ".join(ln) + "\n")
+            sections.append(
+                f"**{mod}**:\n    \u2022 " + "\n    \u2022 ".join(ln) + "\n"
+            )
 
         return "\n".join(sections)
 
