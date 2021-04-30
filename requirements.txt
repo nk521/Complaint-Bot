@@ -9,7 +9,7 @@ importlib==1.0.4
 multidict==4.7.6
 pyaes==1.6.1
 pyasn1==0.4.8
-rsa==4.6
+rsa==4.7
 Telethon==1.14.0
 toml==0.10.1
 uvloop==0.14.0
